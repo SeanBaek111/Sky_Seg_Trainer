@@ -26,7 +26,7 @@ DOWNLOAD_PATH = 'path_to_download'
 Use the downloader.download_ade function within the notebook to fetch the dataset:
 
 ```bash
-downloader.download_ade(DATASET_PATH, DOWNLOAD_PATH)
+downloader.download_ade()
 ```
 # Image Segmentation for Sky-Based Satellite LOS Determination
 ## Sky Classification:
