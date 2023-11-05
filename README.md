@@ -2,7 +2,8 @@
 
 ## Overview
 Sky_Seg_Trainer is an application designed for segmenting images to determine the line-of-sight (LOS) for satellites in the sky. The tool is capable of distinguishing satellites that are visible above the horizon using advanced image segmentation techniques implemented via the DeepLabV3+ model.
-<img width="373" alt="image" src="https://github.com/SeanBaek111/Sky_Seg_Trainer/assets/33170173/b8a7b354-25c5-4b27-a999-a0ed31bbc63b">
+
+<img width="768" alt="image" src="https://github.com/SeanBaek111/Sky_Seg_Trainer/assets/33170173/b8a7b354-25c5-4b27-a999-a0ed31bbc63b">
 
 ## Installation
 
