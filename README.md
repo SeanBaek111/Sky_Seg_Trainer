@@ -10,24 +10,24 @@ First, clone the repository to your local machine:
 ```bash
 git clone https://github.com/YourUsername/Sky_Seg_Trainer.git
 cd Sky_Seg_Trainer
-```bash
+```
 
 ## Usage
 To start using the Sky_Seg_Trainer, run the RunTrainer.ipynb Jupyter notebook:
 
 ```bash
 jupyter notebook RunTrainer.ipynb
-
+```
 Ensure to specify the dataset paths in the notebook:
 ```bash
 DATASET_PATH = 'path_dataset'
 DOWNLOAD_PATH = 'path_to_download'
-
+```
 Use the downloader.download_ade function within the notebook to fetch the dataset:
 
 ```bash
 downloader.download_ade(DATASET_PATH, DOWNLOAD_PATH)
- 
+```
 # Image Segmentation for Sky-Based Satellite LOS Determination
 ## Sky Classification:
 The application integrates transformed satellite coordinates into an augmented reality view, allowing users to visually identify GNSS satellite locations through their iPhone display.
