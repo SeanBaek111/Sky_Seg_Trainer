@@ -35,51 +35,90 @@ class ModelEvaluator:
                 pred_mask = self.create_mask(self.model.predict(one_img_batch, verbose=False))
                 self.display_sample_sky_iou_mIoU([image, mask, pred_mask])
                 self.sky_count += 1
-
+        print("sum_sky_iou_val", self.sum_sky_iou_val)
         print(f"sky_count: {self.sky_count}")
         print(f"Average Sky IoU: {self.sum_sky_iou_val/self.sky_count:.4f}")
         print(f"Average mIoU: {self.sum_mIoU_val/self.sky_count:.4f}")
 
     def create_mask(self, pred):
-        return tf.argmax(pred, axis=-1)
+        return tf.argmax(pred, axis=-1) 
 
-    def calculate_sky_iou(self, mask_true, mask_pred):
-        sky_index = self.name_to_index_dict['sky']
-        intersection = np.sum((mask_true == sky_index) & (mask_pred == sky_index))
-        union = np.sum((mask_true == sky_index) | (mask_pred == sky_index))
+    def calculate_sky_iou(self, mask_true, mask_pred, class_id):
+        intersection = np.sum((mask_true == class_id) & (mask_pred == class_id))
+        union = np.sum((mask_true == class_id) | (mask_pred == class_id))
         return intersection / union if union != 0 else 0
 
-    def calculate_mIoU(self, mask_true, mask_pred):
-        sky_iou = self.calculate_sky_iou(mask_true, mask_pred)
-        non_sky_iou = self.calculate_sky_iou(1 - mask_true, 1 - mask_pred)  # Assuming binary mask
-        return (sky_iou + non_sky_iou) / 2
+    def calculate_mIoU(self, mask_true, mask_pred, class_id):
+        # Sky IoU
+        sky_intersection = np.sum((mask_true == class_id) & (mask_pred == class_id))
+        sky_union = np.sum((mask_true == class_id) | (mask_pred == class_id))
+        sky_iou = sky_intersection / sky_union if sky_union != 0 else 0
+    
+        # Non-Sky IoU
+        non_sky_intersection = np.sum((mask_true != class_id) & (mask_pred != class_id))
+        non_sky_union = np.sum((mask_true != class_id) | (mask_pred != class_id))
+        non_sky_iou = non_sky_intersection / non_sky_union if non_sky_union != 0 else 0
+    
+        # mIoU
+        mIoU = (sky_iou + non_sky_iou) / 2
+        
+        return mIoU
 
     def sky_pixel_ratio(self, mask):
         total_pixels = mask.size
         sky_pixels = np.sum(mask == self.name_to_index_dict['sky'])
         return sky_pixels / total_pixels if total_pixels > 0 else 0
 
-    def display_sample_sky_iou_mIoU(self, display_list):
+    def display_sample_sky_iou_mIoU(self,display_list ):
+        # global sum_sky_iou_val
+        # global sum_mIoU_val
+        # global sky_count
+        # global count
+        # global sky_ratio
+        sky_index = self.name_to_index_dict['sky']
         true_mask = display_list[1].numpy().squeeze().astype(int)
         predicted_mask = display_list[2].numpy().squeeze().astype(int)
-        sky_iou_val = self.calculate_sky_iou(true_mask, predicted_mask)
-        mIoU_val = self.calculate_mIoU(true_mask, predicted_mask)
+        sky_iou_val = self.calculate_sky_iou(true_mask, predicted_mask, sky_index)
+        mIoU_val = self.calculate_mIoU(true_mask, predicted_mask, sky_index)
+        
+      #  If Sky IoU value is 0, exit the function early
+        # if sky_iou_val == 0:
+        #     # print("Sky IoU is 0. Skipping visualization.")
+        #    return
+      
+        plt.figure(figsize=(18, 18))
+        title = ['Input Image', 'True Mask', 'Predicted Mask']
+    
+        for i in range(len(display_list)):
+            plt.subplot(1, len(display_list), i+1)
+            plt.title(title[i])
+            
+            # Ensure the image has 3 channels
+            img_to_display = display_list[i]
+            if len(img_to_display.shape) == 2:
+                img_to_display = np.expand_dims(img_to_display, axis=-1)
+            
+            # For ground truth and predicted mask, use the colormap
+            if i == 1 or i == 2:
+                mask_to_display = img_to_display.numpy().squeeze().astype(int)
+                display_img = self.visualize_segmentation_sky(mask_to_display)
+                plt.imshow(display_img, interpolation='lanczos')
+    
+            else:
+                plt.imshow(tf.keras.preprocessing.image.array_to_img(img_to_display))
+            plt.axis('off')
+        plt.show()
+    
+      #  print(f"sky_ratio: {sky_ratio:.4f}" )
+        print(f"Sky IoU: {sky_iou_val:.4f}", end=" | ")
+        sum_sky_iou_val += sky_iou_val
+    
+        print(f"mIoU: {mIoU_val:.4f}", end=" ")
+        sum_mIoU_val += mIoU_val
+    
+        sky_count += 1
+        print(sky_count, count)
 
-        # When preparing the image for display, remove the batch dimension
-        if sky_iou_val > 0:
-            for i in range(len(display_list)):
-                # Squeeze out the batch dimension if it's there
-                display_image = np.squeeze(display_list[i])
-                
-                # Check if the image has an acceptable shape for display
-                if display_image.ndim == 3 and display_image.shape[-1] in {1, 3, 4}:
-                    self.visualize_sample(display_image)
-                else:
-                    print(f"Invalid image shape for display: {display_image.shape}")
-                    continue
-                
-                print(f"Sky IoU: {sky_iou_val:.4f} | mIoU: {mIoU_val:.4f}")
-                self.sum_sky_iou_val += sky_iou_val
 
     def visualize_sample(self, display_list):
         plt.figure(figsize=(18, 18))
