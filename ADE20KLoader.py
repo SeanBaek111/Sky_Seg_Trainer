@@ -22,7 +22,7 @@ class ADE20KLoader:
 
     def _create_dataset(self, subset):
         files = tf.data.Dataset.list_files(os.path.join(self.dataset_path, subset, "*.jpg"), seed=self.seed)
-        files = files.shard(num_shards=50, index=0)
+       # files = files.shard(num_shards=50, index=0)
         dataset = files.map(self._parse_image)
         return dataset
 
